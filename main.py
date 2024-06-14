@@ -1,5 +1,6 @@
 import curses
 from curses import wrapper
+import time
 
 
 def start_screen(stdscr):
@@ -26,13 +27,25 @@ def wpm_test(stdscr):
     target_text = "Hello wold this is some sort of text for this app!"
     current_text = []
     wpm = 0
+    start_time = time.time()
+    stdscr.nodelay(True)  # do not delay if user doesnt enter a key
 
     while True:
+        time_elapsed = max(time.time() - start_time, 1)
+        wpm = round(len(current_text) / (time_elapsed / 60) / 5)  #words per minute
+
         stdscr.clear()
         display_text(stdscr, target_text, current_text, wpm)
         stdscr.refresh()
 
-        key = stdscr.getkey()
+        if "".join(current_text) == target_text: #  takes all the character and combines them together
+            stdscr.nodelay(False)
+            break
+
+        try:
+            key = stdscr.getkey()
+        except:
+            continue
 
         if ord(key) == 27:
             break
@@ -50,7 +63,13 @@ def main(stdscr):
     curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
     start_screen(stdscr)
-    wpm_test(stdscr)
+    while True:
+        wpm_test(stdscr)
+        stdscr.addstr(2, 0, "You completed the text! Press any key to continue..")
+        key = stdscr.getkey()
+
+        if ord(key) == 27:
+            break
 
 
 wrapper(main)
